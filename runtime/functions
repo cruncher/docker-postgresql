@@ -372,7 +372,6 @@ create_replication_user() {
 
 setup_wale() {
   # From https://github.com/lukesmith/docker-postgres-wale/blob/master/setup-wale.sh
-
   if [[ -n ${WALE_AWS_SECRET_ACCESS_KEY} ]]; then
     echo "Setting up wal-e replication"
     # Assumption: the group is trusted to read secret information
@@ -415,7 +414,7 @@ configure_postgresql() {
   initialize_database
   configure_recovery
   configure_ssl
-  # setup_wale
+  setup_wale
 
   # start postgres server internally for the creation of users and databases
   rm -rf ${PG_DATADIR}/postmaster.pid
