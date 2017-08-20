@@ -1,0 +1,3 @@
+PG_TRUST_LOCALNET=true
+REPLICATION_USER=repluser
+REPLICATION_PASS=repluserpass
