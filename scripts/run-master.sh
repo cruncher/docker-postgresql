@@ -1,6 +1,8 @@
 #!/bin/sh
 . ./setup.sh
 
+docker stop postgresql && docker rm postgresql
+
 docker run --name postgresql -itd --restart always \
   --publish 5432:5432 \
   --env-file ./env/common \
