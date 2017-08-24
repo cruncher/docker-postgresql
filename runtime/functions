@@ -430,7 +430,7 @@ restore_from_wale() {
         exec_as_postgres rm -rf /tmp/pg-data
         chown -R ${PG_USER}:${PG_USER} ${PG_HOME}
 
-        rm $PG_RECOVERY_CONF
+        rm -f $PG_RECOVERY_CONF
         echo "Creating recovery.conf"
         echo "standby_mode     = 'yes'" >> $PG_RECOVERY_CONF
         echo "restore_command  = 'envdir /etc/wal-e.d/env /usr/local/bin/wal-e wal-fetch "%f" "%p"'" >> $PG_RECOVERY_CONF
