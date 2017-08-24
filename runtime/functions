@@ -410,6 +410,44 @@ setup_wale() {
   fi
 }
 
+restore_from_wale() {
+  # From https://github.com/lukesmith/docker-postgres-wale/blob/master/setup-wale.sh
+  if [[ -n ${WALE_RESTORE_POINT} ]]; then
+    if [[ -n ${WALE_AWS_SECRET_ACCESS_KEY} ]]; then
+      echo "Restoring WAL-E to PITR: ${WALE_RESTORE_POINT}"
+
+      case $REPLICATION_MODE in
+        slave|snapshot|backup)
+          echo "$REPLICATION_MODE - Skipping WAL-E restore";
+          ;;
+        *)
+
+        echo "Stopping PostgreSQL"
+        exec_as_postgres ${PG_BINDIR}/pg_ctl -D ${PG_DATADIR} -w stop >/dev/null
+        echo "Fetching WALs"
+        exec_as_postgres envdir /etc/wal-e.d/env /usr/local/bin/wal-e backup-fetch /tmp/pg-data LATEST
+        exec_as_postgres cp -rf /tmp/pg-data/* ${PG_DATADIR}
+        exec_as_postgres rm -rf /tmp/pg-data
+        chown -R ${PG_USER}:${PG_USER} ${PG_HOME}
+
+        echo "Creating recovery.conf"
+        echo "standby_mode     = 'yes'" >> $PG_RECOVERY_CONF
+        echo "restore_command  = 'envdir /etc/wal-e.d/env /usr/local/bin/wal-e wal-fetch "%f" "%p"'" >> $PG_RECOVERY_CONF
+        echo "trigger_file     = '$PGDATA/trigger'" >> $PG_RECOVERY_CONF
+
+        if [[ ! $WALE_RESTORE_POINT == LATEST ]]; then
+          echo "recovery_target_time = '${$PG_RECOVERY_CONF}'" >> $PG_RECOVERY_CONF
+        fi
+
+        echo "Starging PostgreSQL"
+        exec_as_postgres ${PG_BINDIR}/pg_ctl -D ${PG_DATADIR} -w stop >/dev/null
+
+        ;;
+      esac
+    fi
+  fi
+}
+
 configure_postgresql() {
   initialize_database
   configure_recovery
@@ -424,6 +462,8 @@ configure_postgresql() {
   create_user
   create_database
   create_replication_user
+
+  restore_from_wale
 
   # stop the postgres server
   exec_as_postgres ${PG_BINDIR}/pg_ctl -D ${PG_DATADIR} -w stop >/dev/null
