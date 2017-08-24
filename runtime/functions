@@ -439,12 +439,20 @@ restore_from_wale() {
           echo "recovery_target_time = '${$PG_RECOVERY_CONF}'" >> $PG_RECOVERY_CONF
         fi
 
-        echo "Starging PostgreSQL"
+        echo "Current recovery.conf"
+        cat $PG_RECOVERY_CONF
+
+        echo "Starging PostgreSQL to run recovery"
         exec_as_postgres ${PG_BINDIR}/pg_ctl -D ${PG_DATADIR} -w stop >/dev/null
 
         ;;
       esac
+
+    else
+        echo "RECOVERY: Dont have WALE_AWS_SECRET_ACCESS_KEY"
     fi
+  else
+      echo "RECOVERY: WALE_RESTORE_POINT not set"
   fi
 }
 
