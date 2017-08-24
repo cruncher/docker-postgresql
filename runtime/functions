@@ -437,7 +437,7 @@ restore_from_wale() {
         echo "trigger_file     = '$PGDATA/trigger'" >> $PG_RECOVERY_CONF
 
         if [[ ! $WALE_RESTORE_POINT == LATEST ]]; then
-          echo "recovery_target_time = '${PG_RECOVERY_CONF}'" >> $PG_RECOVERY_CONF
+          echo "recovery_target_time = '${WALE_RESTORE_POINT}'" >> $PG_RECOVERY_CONF
         fi
 
         echo "Current recovery.conf"
