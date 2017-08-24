@@ -428,7 +428,6 @@ restore_from_wale() {
         exec_as_postgres envdir /etc/wal-e.d/env /usr/local/bin/wal-e backup-fetch /tmp/pg-data LATEST
         exec_as_postgres cp -rf /tmp/pg-data/* ${PG_DATADIR}
         exec_as_postgres rm -rf /tmp/pg-data
-        chown -R ${PG_USER}:${PG_USER} ${PG_HOME}
 
         rm -f $PG_RECOVERY_CONF
         echo "Creating recovery.conf"
@@ -442,6 +441,7 @@ restore_from_wale() {
 
         echo "Current recovery.conf"
         cat $PG_RECOVERY_CONF
+        chown -R ${PG_USER}:${PG_USER} ${PG_HOME}
 
         ;;
       esac
