@@ -422,8 +422,8 @@ restore_from_wale() {
           ;;
         *)
 
-        echo "Stopping PostgreSQL"
-        exec_as_postgres ${PG_BINDIR}/pg_ctl -D ${PG_DATADIR} -w stop >/dev/null
+        # echo "Stopping PostgreSQL"
+        # exec_as_postgres ${PG_BINDIR}/pg_ctl -D ${PG_DATADIR} -w stop >/dev/null
         echo "Fetching WALs"
         exec_as_postgres envdir /etc/wal-e.d/env /usr/local/bin/wal-e backup-fetch /tmp/pg-data LATEST
         exec_as_postgres cp -rf /tmp/pg-data/* ${PG_DATADIR}
