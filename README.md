@@ -82,7 +82,7 @@ In case of data loss, you can perform a PITR:
 * Move the existing DB out of the way: `mv /var/db/9.6 /var/db/9.6-old`
 * Run the restore: `WALE_RESTORE_POINT='2017-02-01 19:58:55' ./wale-restore.sh` or `WALE_RESTORE_POINT='LATEST' ./wale-restore.sh`
 
-This will attempt to fetch the WALs from S3 and restore to the given point in time. After the restore finished, restart the master with `run-master.sh`
+This will attempt to fetch the WALs from S3 and restore to the given point in time. After the restore finished, restart the master with `run-master.sh`, then delete the datadir on the slaves and restart them.
 
 
 ## Operations
