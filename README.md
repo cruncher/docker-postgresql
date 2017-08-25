@@ -2,30 +2,6 @@
 
 Forked from [sameersbn/docker-postgresql](https://github.com/sameersbn/docker-postgresql).
 
-- [Introduction](#introduction)
-  - [Contributing](#contributing)
-  - [Issues](#issues)
-- [Getting started](#getting-started)
-  - [Installation](#installation)
-  - [Quickstart](#quickstart)
-  - [Persistence](#persistence)
-  - [Trusting local connections](#trusting-local-connections)
-  - [Setting `postgres` user password](#setting-postgres-user-password)
-  - [Creating database user](#creating-database-user)
-  - [Creating databases](#creating-databases)
-  - [Granting user access to a database](#granting-user-access-to-a-database)
-  - [Enabling extensions](#enabling-extensions)
-  - [Creating replication user](#creating-replication-user)
-  - [Setting up a replication cluster](#setting-up-a-replication-cluster)
-  - [Creating a snapshot](#creating-a-snapshot)
-  - [Creating a backup](#creating-a-backup)
-  - [Command-line arguments](#command-line-arguments)
-  - [Logs](#logs)
-  - [UID/GID mapping](#uidgid-mapping)
-- [Maintenance](#maintenance)
-  - [Upgrading](#upgrading)
-  - [Shell Access](#shell-access)
-
 # Introduction
 
 `Dockerfile` to create a [Docker](https://www.docker.com/) container image for [PostgreSQL](http://postgresql.org/).
