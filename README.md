@@ -1,5 +1,7 @@
 # cruncher/postgresql:9.6-2
 
+Forked from [sameersbn/docker-postgresql](https://github.com/sameersbn/docker-postgresql).
+
 - [Introduction](#introduction)
   - [Contributing](#contributing)
   - [Issues](#issues)
@@ -56,8 +58,6 @@ If the above recommendations do not help then [report your issue](../../issues/n
 
 Automated builds of the image are available on [Dockerhub](https://hub.docker.com/r/cruncher/postgresql) and is the recommended method of installation.
 
-> **Note**: Builds are also available on [Quay.io](https://quay.io/repository/cruncher/postgresql)
-
 ```bash
 docker pull cruncher/postgresql:9.6-2
 ```
@@ -70,22 +70,52 @@ docker build -t cruncher/postgresql github.com/cruncher/docker-postgresql
 
 ## Quickstart
 
-Start PostgreSQL using:
+Edit the contents of `scripts/env`, then
+
+Start a PostgreSQL master using:
 
 ```bash
-docker run --name postgresql -itd --restart always \
-  --publish 5432:5432 \
-  --volume /srv/docker/postgresql:/var/lib/postgresql \
-  cruncher/postgresql:9.6-2
+cd scripts
+./run-master.sh
 ```
+
+Start a PostgreSQL slave using:
+
+```bash
+cd scripts
+REPLICATION_HOST=<ip_address_of_master> ./run-slave.sh
+```
+
+(make sure the slave can connect to the master on port 5432)
+
+
+### WAL-E
+
+If you define env variables in `scripts/env/wal-e`, the master node will persist WALs to S3
+
+```
+WALE_AWS_SECRET_ACCESS_KEY=<S3_SECRET_ACCCESS_KEY>
+WALE_AWS_ACCESS_KEY_ID=<S3_ACCCESS_KEY_ID>
+WALE_S3_PREFIX=s3://<bucket-name>/<path>
+WALE_AWS_REGION=S3_REGION_NAME (e.g. eu-central-1)
+```
+
+In case of data loss, you can perform a PITR:
+
+* Stop the master and slaves: `docker stop postgresql && docker rm postgresql`
+* Move the existing DB out of the way: `mv /var/db/9.6 /var/db/9.6-old`
+* Run the restore: `WALE_RESTORE_POINT='2017-02-01 19:58:55' ./wale-restore.sh` or `WALE_RESTORE_POINT='LATEST' ./wale-restore.sh`
+
+This will attempt to fetch the WALs from S3 and restore to the given point in time. After the restore finished, restart the master with `run-master.sh`
+
+
+## Operations
 
 Login to the PostgreSQL server using:
 
 ```bash
 docker exec -it postgresql sudo -u postgres psql
 ```
-
-*Alternatively, you can use the sample [docker-compose.yml](docker-compose.yml) file to start the container using [Docker Compose](https://docs.docker.com/compose/)*
 
 ## Persistence
 
@@ -100,19 +130,6 @@ mkdir -p /srv/docker/postgresql
 chcon -Rt svirt_sandbox_file_t /srv/docker/postgresql
 ```
 
-## Trusting local connections
-
-By default connections to the PostgreSQL server need to authenticated using a password. If desired you can trust connections from the local network using the `PG_TRUST_LOCALNET` variable.
-
-```bash
-docker run --name postgresql -itd --restart always \
-  --env 'PG_TRUST_LOCALNET=true' \
-  cruncher/postgresql:9.6-2
-```
-
-> **Note**
->
-> The local network here is network to which the container is attached. This has different meanings depending on the `--net` parameter specified while starting the container. In the default configuration, this parameter would trust connections from other containers on the `docker0` bridge.
 
 ## Setting `postgres` user password
 
