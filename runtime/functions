@@ -6,6 +6,7 @@ PG_CONF=${PG_DATADIR}/postgresql.conf
 PG_HBA_CONF=${PG_DATADIR}/pg_hba.conf
 PG_IDENT_CONF=${PG_DATADIR}/pg_ident.conf
 PG_RECOVERY_CONF=${PG_DATADIR}/recovery.conf
+PG_ANALYZE_CONF=/etc/pganalyze-collector.conf
 
 ## Execute command as PG_USER
 exec_as_postgres() {
@@ -370,6 +371,32 @@ create_replication_user() {
 }
 
 
+setup_pganalyze() {
+  if [[ -n ${PG_ANALYZE_API_KEY} ]]; then
+    case $REPLICATION_MODE in
+      slave|snapshot|backup) ;; # replication user can only be created on the master
+      *)
+        echo "Configuring PgAnalyze"
+        set_postgresql_param "shared_preload_libraries" "pg_stat_statements"
+        set_postgresql_param "track_activity_query_size" "2048"
+        set_postgresql_param "pg_stat_statements.track" "all"
+
+        rm ${PG_ANALYZE_CONF}
+        touch ${PG_ANALYZE_CONF}
+        echo "[pganalyze]" >> ${PG_ANALYZE_CONF}
+        echo "api_key: ${PG_ANALYZE_API_KEY}" >> ${PG_ANALYZE_CONF}
+        echo "[server1]" >> ${PG_ANALYZE_CONF}
+        echo "db_name: ${PG_ANALYZE_DB_NAME}" >> ${PG_ANALYZE_CONF}
+        echo "db_username: postgres" >> ${PG_ANALYZE_CONF}
+        echo "db_host: 127.0.0.1"  >> ${PG_ANALYZE_CONF}
+        echo "db_port: 5432" >> ${PG_ANALYZE_CONF}
+
+        ;;
+    esac
+  fi
+}
+
+
 setup_wale() {
   # From https://github.com/lukesmith/docker-postgres-wale/blob/master/setup-wale.sh
   if [[ -n ${WALE_AWS_SECRET_ACCESS_KEY} ]]; then
@@ -457,7 +484,6 @@ configure_postgresql() {
   configure_recovery
   configure_ssl
   setup_wale
-
   restore_from_wale
 
   # start postgres server internally for the creation of users and databases
@@ -468,6 +494,7 @@ configure_postgresql() {
   create_user
   create_database
   create_replication_user
+  setup_pganalyze
 
 
   # stop the postgres server

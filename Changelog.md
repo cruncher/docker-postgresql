@@ -1,5 +1,12 @@
 # Changelog
 
+
+**9.6-3-wale**
+- Support for PgAnalyze
+
+**9.6-2-wale**
+- Added support for WAL-e log pushing and restore
+
 **Cloned from sameersbn/ubuntu**
 
 **9.6**
