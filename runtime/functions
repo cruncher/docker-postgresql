@@ -121,13 +121,22 @@ configure_hot_standby() {
   case ${REPLICATION_MODE} in
     slave|snapshot|backup) ;;
     *)
-      echo "Configuring hot standby..."
-      set_postgresql_param "wal_level" "hot_standby"
-      set_postgresql_param "max_wal_senders" "16"
-      set_postgresql_param "checkpoint_segments" "8"
-      set_postgresql_param "wal_keep_segments" "32"
-      set_postgresql_param "hot_standby" "on"
-      ;;
+
+      if [[ -n ${WALE_RESTORE_POINT} ]]; then
+      	echo "Configuring for restore..."
+	set_postgresql_param "wal_level" "archive"
+	set_postgresql_param "max_wal_senders" "0"
+	set_postgresql_param "hot_standby" "off"
+
+      else
+	echo "Configuring hot standby..."
+      	set_postgresql_param "wal_level" "hot_standby"
+      	set_postgresql_param "max_wal_senders" "16"
+      	set_postgresql_param "checkpoint_segments" "8"
+      	set_postgresql_param "wal_keep_segments" "32"
+      	set_postgresql_param "hot_standby" "on"
+     fi
+   ;;
   esac
 }
 
@@ -334,14 +343,14 @@ create_database() {
           echo "Creating database: ${database}..."
           if [[ -z $(psql -U ${PG_USER} -Atc "SELECT 1 FROM pg_catalog.pg_database WHERE datname = '${database}'";) ]]; then
             psql -U ${PG_USER} -c "CREATE DATABASE \"${database}\" WITH TEMPLATE = \"${DB_TEMPLATE}\";" >/dev/null
+            if [[ -n ${DB_USER} ]]; then
+               echo "‣ Granting access to ${DB_USER} user..."
+              psql -U ${PG_USER} -c "GRANT ALL PRIVILEGES ON DATABASE \"${database}\" to \"${DB_USER}\";" >/dev/null
+            fi            
           fi
 
           load_extensions ${database}
 
-          if [[ -n ${DB_USER} ]]; then
-            echo "‣ Granting access to ${DB_USER} user..."
-            psql -U ${PG_USER} -c "GRANT ALL PRIVILEGES ON DATABASE \"${database}\" to \"${DB_USER}\";" >/dev/null
-          fi
         done
         ;;
     esac
@@ -390,19 +399,23 @@ setup_wale() {
         ;;
 
       *)
-      echo "Authority: Master - Scheduling WAL backups";
 
-      if grep -q "/etc/wal-e.d/env" "${PG_CONF}"; then
-        echo "wal-e already configured in ${PG_CONF}"
+      if [[ -n ${WALE_RESTORE_POINT} ]]; then
+     	 echo "We're about to restore, dont setup WAL backups"
       else
-        # set_postgresql_param "wal_level" "archive"
-        set_postgresql_param "archive_mode" "on"
-        set_postgresql_param "archive_command" "envdir /etc/wal-e.d/env /usr/local/bin/wal-e wal-push %p"
-        set_postgresql_param "archive_timeout" "60"
+
+      	echo "Authority: Master - Scheduling WAL backups";
+
+      	if grep -q "/etc/wal-e.d/env" "${PG_CONF}"; then
+        	echo "wal-e already configured in ${PG_CONF}"
+      	else
+        	# set_postgresql_param "wal_level" "archive"
+        	set_postgresql_param "archive_mode" "on"
+        	set_postgresql_param "archive_command" "envdir /etc/wal-e.d/env /usr/local/bin/wal-e wal-push %p"
+        	set_postgresql_param "archive_timeout" "60"
+      	fi
       fi
 
-      # su - postgres -c "crontab -l | { cat; echo \"0 3 * * * /usr/bin/envdir /etc/wal-e.d/env /usr/local/bin/wal-e backup-push ${PG_DATADIR}\"; } | crontab -"
-      # su - postgres -c "crontab -l | { cat; echo \"0 4 * * * /usr/bin/envdir /etc/wal-e.d/env /usr/local/bin/wal-e delete --confirm retain 7\"; } | crontab -"
       ;;
     esac
   else
@@ -428,12 +441,13 @@ restore_from_wale() {
         exec_as_postgres envdir /etc/wal-e.d/env /usr/local/bin/wal-e backup-fetch /tmp/pg-data LATEST
         exec_as_postgres cp -rf /tmp/pg-data/* ${PG_DATADIR}
         exec_as_postgres rm -rf /tmp/pg-data
-
+	
         rm -f $PG_RECOVERY_CONF
         echo "Creating recovery.conf"
         # echo "standby_mode     = 'yes'" >> $PG_RECOVERY_CONF
         echo "restore_command  = 'envdir /etc/wal-e.d/env /usr/local/bin/wal-e wal-fetch \"%f\" \"%p\"'" >> $PG_RECOVERY_CONF
         # echo "trigger_file     = '$PGDATA/trigger'" >> $PG_RECOVERY_CONF
+        echo "recovery_target_action = 'promote'" >> $PG_RECOVERY_CONF
 
         if [[ ! $WALE_RESTORE_POINT == LATEST ]]; then
           echo "recovery_target_time = '${WALE_RESTORE_POINT}'" >> $PG_RECOVERY_CONF
@@ -447,13 +461,14 @@ restore_from_wale() {
         set_postgresql_param "listen_addresses" "127.0.0.1" quiet
         exec_as_postgres ${PG_BINDIR}/pg_ctl -D ${PG_DATADIR} -w start
 
-        exit 1
+        exit 0
 
         ;;
       esac
 
     else
         echo "RECOVERY: Dont have WALE_AWS_SECRET_ACCESS_KEY"
+        exit 1
     fi
   fi
 }
