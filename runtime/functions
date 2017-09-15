@@ -431,9 +431,9 @@ restore_from_wale() {
 
         rm -f $PG_RECOVERY_CONF
         echo "Creating recovery.conf"
-        echo "standby_mode     = 'yes'" >> $PG_RECOVERY_CONF
-        echo "restore_command  = 'envdir /etc/wal-e.d/env /usr/local/bin/wal-e wal-fetch "%f" "%p"'" >> $PG_RECOVERY_CONF
-        echo "trigger_file     = '$PGDATA/trigger'" >> $PG_RECOVERY_CONF
+        # echo "standby_mode     = 'yes'" >> $PG_RECOVERY_CONF
+        echo "restore_command  = 'envdir /etc/wal-e.d/env /usr/local/bin/wal-e wal-fetch \"%f\" \"%p\"'" >> $PG_RECOVERY_CONF
+        # echo "trigger_file     = '$PGDATA/trigger'" >> $PG_RECOVERY_CONF
 
         if [[ ! $WALE_RESTORE_POINT == LATEST ]]; then
           echo "recovery_target_time = '${WALE_RESTORE_POINT}'" >> $PG_RECOVERY_CONF
@@ -442,6 +442,12 @@ restore_from_wale() {
         echo "Current recovery.conf"
         cat $PG_RECOVERY_CONF
         chown -R ${PG_USER}:${PG_USER} ${PG_HOME}
+
+        rm -rf ${PG_DATADIR}/postmaster.pid
+        set_postgresql_param "listen_addresses" "127.0.0.1" quiet
+        exec_as_postgres ${PG_BINDIR}/pg_ctl -D ${PG_DATADIR} -w start
+
+        exit 1
 
         ;;
       esac
