@@ -124,12 +124,12 @@ configure_hot_standby() {
 
       if [[ -n ${WALE_RESTORE_POINT} ]]; then
       	echo "Configuring for restore..."
-	set_postgresql_param "wal_level" "archive"
-	set_postgresql_param "max_wal_senders" "0"
-	set_postgresql_param "hot_standby" "off"
+	      set_postgresql_param "wal_level" "archive"
+	      set_postgresql_param "max_wal_senders" "0"
+	      set_postgresql_param "hot_standby" "off"
 
       else
-	echo "Configuring hot standby..."
+	      echo "Configuring hot standby..."
       	set_postgresql_param "wal_level" "hot_standby"
       	set_postgresql_param "max_wal_senders" "16"
       	set_postgresql_param "checkpoint_segments" "8"
@@ -346,7 +346,7 @@ create_database() {
             if [[ -n ${DB_USER} ]]; then
                echo "‣ Granting access to ${DB_USER} user..."
               psql -U ${PG_USER} -c "GRANT ALL PRIVILEGES ON DATABASE \"${database}\" to \"${DB_USER}\";" >/dev/null
-            fi            
+            fi
           fi
 
           load_extensions ${database}
@@ -441,13 +441,13 @@ restore_from_wale() {
         exec_as_postgres envdir /etc/wal-e.d/env /usr/local/bin/wal-e backup-fetch /tmp/pg-data LATEST
         exec_as_postgres cp -rf /tmp/pg-data/* ${PG_DATADIR}
         exec_as_postgres rm -rf /tmp/pg-data
-	
+
         rm -f $PG_RECOVERY_CONF
         echo "Creating recovery.conf"
         # echo "standby_mode     = 'yes'" >> $PG_RECOVERY_CONF
         echo "restore_command  = 'envdir /etc/wal-e.d/env /usr/local/bin/wal-e wal-fetch \"%f\" \"%p\"'" >> $PG_RECOVERY_CONF
         # echo "trigger_file     = '$PGDATA/trigger'" >> $PG_RECOVERY_CONF
-        echo "recovery_target_action = 'promote'" >> $PG_RECOVERY_CONF
+        echo "recovery_target_action = 'shutdown'" >> $PG_RECOVERY_CONF
 
         if [[ ! $WALE_RESTORE_POINT == LATEST ]]; then
           echo "recovery_target_time = '${WALE_RESTORE_POINT}'" >> $PG_RECOVERY_CONF
