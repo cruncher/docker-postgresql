@@ -459,10 +459,10 @@ restore_from_wale() {
 
         rm -rf ${PG_DATADIR}/postmaster.pid
         set_postgresql_param "listen_addresses" "127.0.0.1" quiet
-        exec_as_postgres ${PG_BINDIR}/pg_ctl -D ${PG_DATADIR} -w start
+        # exec_as_postgres ${PG_BINDIR}/pg_ctl -D ${PG_DATADIR} -w start
+        exec_as_postgres ${PG_BINDIR}/postgres -D ${PG_DATADIR}
 
         exit 0
-
         ;;
       esac
 
