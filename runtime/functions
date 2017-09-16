@@ -241,13 +241,13 @@ initialize_database() {
         ;;
     esac
 
-    configure_hot_standby
-
     # Change DSM from `posix' to `sysv' if we are inside an lx-brand container
     if [[ $(uname -v) == "BrandZ virtual linux" ]]; then
       set_postgresql_param "dynamic_shared_memory_type" "sysv"
     fi
   fi
+
+  configure_hot_standby
 
   # configure path to data_directory
   set_postgresql_param "data_directory" "${PG_DATADIR}"
