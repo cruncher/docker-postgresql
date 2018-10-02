@@ -3,6 +3,7 @@ MAINTAINER marco@cruncher.ch
 
 ENV PG_APP_HOME="/etc/docker-postgresql"\
     PG_VERSION=9.6 \
+    PG_POSTGIS_VERSION=2.4 \
     PG_USER=postgres \
     PG_HOME=/var/lib/postgresql \
     PG_RUNDIR=/run/postgresql \
@@ -17,13 +18,16 @@ RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-k
  && apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y acl \
       postgresql-${PG_VERSION} postgresql-client-${PG_VERSION} postgresql-contrib-${PG_VERSION} \
+      postgresql-${PG_VERSION}-postgis-${PG_POSTGIS_VERSION} \
+      postgresql-${PG_VERSION}-postgis-${PG_POSTGIS_VERSION}-scripts \
       python3-pip python3.4 lzop pv daemontools build-essential python3-dev \
  && ln -sf ${PG_DATADIR}/postgresql.conf /etc/postgresql/${PG_VERSION}/main/postgresql.conf \
  && ln -sf ${PG_DATADIR}/pg_hba.conf /etc/postgresql/${PG_VERSION}/main/pg_hba.conf \
  && ln -sf ${PG_DATADIR}/pg_ident.conf /etc/postgresql/${PG_VERSION}/main/pg_ident.conf \
  && rm -rf ${PG_HOME} \
  && rm -rf /var/lib/apt/lists/* \
- && python3 -m pip install wal-e[aws]
+ && python3 -m pip install gevent==1.2.2 \
+ && python3 -m pip install wal-e[aws]==1.0.3
 
 COPY runtime/ ${PG_APP_HOME}/
 COPY entrypoint.sh /sbin/entrypoint.sh
