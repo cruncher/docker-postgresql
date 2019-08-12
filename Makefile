@@ -1,7 +1,7 @@
 all: build
 
 build:
-	@docker build --tag=cruncher/postgresql .
+	@docker build --tag=cruncher/postgresql:$(shell cat VERSION) .
 
 release: build
 	@docker build --tag=cruncher/postgresql:$(shell cat VERSION) .
