@@ -20,14 +20,20 @@ RUN echo "Building..." \
  && apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y acl \
       postgresql-${PG_VERSION} postgresql-client-${PG_VERSION} postgresql-contrib-${PG_VERSION} \
-      python3-pip python3.4 lzop pv daemontools build-essential python3-dev sudo \
+      python3-pip python3.4 lzop pv daemontools build-essential python3-dev sudo git-core \
  && ln -sf ${PG_DATADIR}/postgresql.conf /etc/postgresql/${PG_VERSION}/main/postgresql.conf \
  && ln -sf ${PG_DATADIR}/pg_hba.conf /etc/postgresql/${PG_VERSION}/main/pg_hba.conf \
  && ln -sf ${PG_DATADIR}/pg_ident.conf /etc/postgresql/${PG_VERSION}/main/pg_ident.conf \
  && rm -rf ${PG_HOME} \
  && rm -rf /var/lib/apt/lists/* \
- && python3 -m pip install gevent==1.2.2 \
- && python3 -m pip install wal-e[aws]==1.1.0
+ && python3 -m pip install gevent==1.4.0 \
+ && python3 -m pip install boto>=2.40.0 \
+ && python3 -m pip install git+https://github.com/wal-e/wal-e.git@master
+
+# 1.1.0 does not support python 3.6 properly
+# See https://github.com/wal-e/wal-e/issues/322
+# && python3 -m pip install wal-e[aws]==1.1.0
+
 
 COPY runtime/ ${PG_APP_HOME}/
 COPY entrypoint.sh /sbin/entrypoint.sh

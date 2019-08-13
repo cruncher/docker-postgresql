@@ -391,6 +391,9 @@ setup_wale() {
     echo "${WALE_AWS_ACCESS_KEY_ID}" > /etc/wal-e.d/env/AWS_ACCESS_KEY_ID
     echo "${WALE_S3_PREFIX}" > /etc/wal-e.d/env/WALE_S3_PREFIX
     echo "${WALE_AWS_REGION}" > /etc/wal-e.d/env/AWS_REGION
+    echo "${WALE_S3_ENDPOINT}" > /etc/wal-e.d/env/WALE_S3_ENDPOINT
+    echo "${WALE_LOG_DESTINATION}" > /etc/wal-e.d/env/WALE_LOG_DESTINATION
+
     chown -R root:${PG_USER} /etc/wal-e.d
 
     case $REPLICATION_MODE in
@@ -425,6 +428,8 @@ setup_wale() {
 
 restore_from_wale() {
   # From https://github.com/lukesmith/docker-postgres-wale/blob/master/setup-wale.sh
+  # PG 12, new procedure! :
+  # https://pgstef.github.io/2018/11/26/postgresql12_preview_recovery_conf_disappears.html
   if [[ -n ${WALE_RESTORE_POINT} ]]; then
     if [[ -n ${WALE_AWS_SECRET_ACCESS_KEY} ]]; then
       echo "Restoring WAL-E to PITR: ${WALE_RESTORE_POINT}"
