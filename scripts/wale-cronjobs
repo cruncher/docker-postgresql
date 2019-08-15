@@ -2,5 +2,5 @@
 # Edit then copy this file to e.g. /etc/cron.d/
 #
 
-0 3 * * * root  docker exec postgresql sudo -u postgres /usr/bin/envdir /etc/wal-e.d/env /usr/local/bin/wal-e backup-push /var/lib/postgresql/9.6/main >>/var/log/wal-e.cron.log 2>&1
+0 3 * * * root  docker exec postgresql sudo -u postgres /usr/bin/envdir /etc/wal-e.d/env /usr/local/bin/wal-e backup-push /var/lib/postgresql/11/main >>/var/log/wal-e.cron.log 2>&1
 0 4 * * * root  docker exec postgresql sudo -u postgres /usr/bin/envdir /etc/wal-e.d/env /usr/local/bin/wal-e delete --confirm retain 7 >>/var/log/wal-e.cron.log 2>&1

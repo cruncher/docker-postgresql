@@ -1,5 +1,10 @@
 # Changelog
 
+**11.5-wale**
+- Base image off ubuntu:18.04
+- WAL-E master (1.1.0pre)
+- PostgreSQL 11.5
+
 **Cloned from sameersbn/ubuntu**
 
 **9.6**
