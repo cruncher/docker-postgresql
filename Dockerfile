@@ -2,7 +2,7 @@ FROM ubuntu:18.04
 MAINTAINER marco@cruncher.ch
 
 ENV PG_APP_HOME="/etc/docker-postgresql"\
-    PG_VERSION=12 \
+    PG_VERSION=11 \
     PG_USER=postgres \
     PG_HOME=/var/lib/postgresql \
     PG_RUNDIR=/run/postgresql \
@@ -16,7 +16,7 @@ RUN echo "Building..." \
  && apt-get -y update && apt-get -y upgrade && apt-get -y install gnupg2 wget locales \
  && locale-gen en_US.UTF-8  \
  && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
- && echo "deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg ${PG_VERSION}" > /etc/apt/sources.list.d/pgdg.list \
+ && echo "deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg ${PG_VERSION} main" > /etc/apt/sources.list.d/pgdg.list \
  && apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y acl \
       postgresql-${PG_VERSION} postgresql-client-${PG_VERSION} postgresql-contrib-${PG_VERSION} \
