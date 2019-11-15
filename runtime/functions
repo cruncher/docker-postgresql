@@ -118,6 +118,14 @@ configure_ssl() {
 }
 
 configure_hot_standby() {
+
+  case ${REPLICATION_MODE} in
+    slave)
+      set_postgresql_param "max_standby_archive_delay" "900s"
+      set_postgresql_param "max_standby_streaming_delay" "900s"
+    ;;
+  esac
+
   case ${REPLICATION_MODE} in
     slave|snapshot|backup) ;;
     *)

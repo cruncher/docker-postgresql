@@ -1,5 +1,9 @@
 # Changelog
 
+**11.6-wale**
+- Configure max_standby_archive_delay and max_standby_streaming_delay on the slave to be unreasonably high
+- PostregreSQL 11.6
+
 **11.5-wale**
 - Base image off ubuntu:18.04
 - WAL-E master (1.1.0pre)
