@@ -268,6 +268,9 @@ initialize_database() {
   if [[ ${PG_TRUST_LOCALNET} == true ]]; then
     echo "Trusting connections from the local network..."
     set_hba_param "host all all samenet trust"
+  else
+    echo "NOT trusting connections from the local network..."
+    set_hba_param "host all all samehost trust"
   fi
 
   # allow remote connections to postgresql database
